@@ -47,10 +47,8 @@ module Bredis
     def self.evaluate(exp, params)
       puts "evaluating #{exp.inspect}"
       if exp['lhs_id']
-        puts "=>"
         lhs = evaluate(BusinessRule.hashish_find(exp['lhs_id']), params)
       elsif params[exp['lhs']]
-        puts "P"
         lhs = params[exp['lhs']]
       else
         lhs = exp['lhs']
@@ -67,7 +65,7 @@ module Bredis
     end
 
     def self.operate(op, lhs, rhs)
-      puts "#{lhs} #{op} #{rhs}"
+      puts "\t#{lhs} #{op} #{rhs}"
       case op 
       when '='
         {lhs => rhs}
@@ -114,38 +112,42 @@ end
 # example for discount on clothes and shoes
 
 a = Bredis::BusinessRule.new({
-                       'priority' => nil,
-                       'id' => '1',
-                       'op' => '?',
-                       'lhs' => {
-                         'id' => '2',
-                         'lhs' => '$product', 
-                         'op' => '==', 
-                         'rhs' => 'shoes'
-                       }, 
-                       'rhs' => {
-                         'id' => '3',
-                         'lhs' => '$discount', 
-                         'op' => '=',
-                         'rhs' => '500'
-                       }}.to_json)
+                               'priority' => nil,
+                               'id' => 1,
+                               'op' => '?',
+                               'lhs' => {
+                                 'id' => 2,
+                                 'lhs' => '$product', 
+                                 'op' => '==', 
+                                 'rhs' => 'shoes'
+                               }, 
+                               'rhs' => {
+                                 'id' => 3,
+                                 'lhs' => '$discount', 
+                                 'op' => '=',
+                                 'rhs' => {
+                                   'id' => 7,
+                                   'lhs' =>'$fare',
+                                   'op' => '/',
+                                   'rhs' => 2}
+                               }}.to_json)
 b = Bredis::BusinessRule.new({
-                       'priority' => nil,
-                       'id' => '4',
-                       'op' => '?',
-                       'lhs' => {
-                         'id' => '5',
-                         'lhs' => '$product', 
-                         'op' => '==', 
-                         'rhs' => 'clothes'
-                       }, 
-                       'rhs' => {
-                         'id' => '6',
-                         'lhs' => '$discount', 
-                         'op' => '=',
-                         'rhs' => '200'
-                       }}.to_json)
-                       
+                               'priority' => nil,
+                               'id' => 4,
+                               'op' => '?',
+                               'lhs' => {
+                                 'id' => 5,
+                                 'lhs' => '$product', 
+                                 'op' => '==', 
+                                 'rhs' => 'clothes'
+                               }, 
+                               'rhs' => {
+                                 'id' => 6,
+                                 'lhs' => '$discount', 
+                                 'op' => '=',
+                                 'rhs' => 200
+                               }}.to_json)
 
-# Bredis.evaluate({'$product' => 'shoes'})
+
+RESULT = Bredis.evaluate({'$product' => 'shoes', '$fare' => 500})
 
