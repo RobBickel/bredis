@@ -68,7 +68,8 @@ module Bredis
 
     def self.operate(op, lhs, rhs)
       puts "#{lhs} #{op} #{rhs}"
-      if op == '='
+      case op 
+      when '='
         {lhs => rhs}
       else
         lhs.send(op, rhs)
