@@ -77,14 +77,14 @@ class BusinessRule
 end
 
 # {'id' => '1', 'lhs_id' => '2', 'op' => 'C', 'rhs_id' => '3', 'rule_id' => '1'}
-# {'id' => '2', 'lhs' => '$international', 'op' => '==', 'rhs' => 'true', 'rule_id' => '1'}
+# {'id' => '2', 'lhs' => '$product', 'op' => '==', 'rhs' => 'shoes', 'rule_id' => '1'}
 # {'id' => '3', 'lhs' => '$discount', 'op' => '=', 'rhs' => '500', 'rule_id' => '1'}
 
 # {'id' => '4', 'lhs_id' => '5', 'op' => 'C', 'rhs_id' => '6', 'rule_id' => '4'}
-# {'id' => '5', 'lhs' => '$international', 'op' => '==', 'rhs' => 'false', 'rule_id' => '4'}
+# {'id' => '5', 'lhs' => '$product', 'op' => '==', 'rhs' => 'clothes', 'rule_id' => '4'}
 # {'id' => '6', 'lhs' => '$discount', 'op' => '=', 'rhs' => '200', 'rule_id' => '4'}
 
-# example for emp cashback
+# example for discount on clothes and shoes
 
 a = BusinessRule.new({
                        'priority' => nil,
@@ -92,9 +92,9 @@ a = BusinessRule.new({
                        'op' => 'C',
                        'lhs' => {
                          'id' => '2',
-                         'lhs' => '$international', 
+                         'lhs' => '$product', 
                          'op' => '==', 
-                         'rhs' => 'true'
+                         'rhs' => 'shoes'
                        }, 
                        'rhs' => {
                          'id' => '3',
@@ -120,4 +120,4 @@ b = BusinessRule.new({
                        }}.to_json)
                        
 
-# Bredis.evaluate([a, b], {'$international' => true})
+# Bredis.evaluate([a, b], {'$product' => shoes})
