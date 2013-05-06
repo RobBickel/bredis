@@ -47,6 +47,35 @@ module Bredis
     return result
   end
 
+  class Operation
+    OPERATORS = {
+    }
+    
+    class << self
+
+      def operate(op, lhs, rhs = nil)
+        puts "\t#{lhs} #{op} #{rhs}"
+        case op 
+        when '=' # for consequence part currently supports only single (merge!)
+          {lhs => rhs}
+        when '&', '|', '+', '-', '*', '/', '==', '!='
+          lhs.send(op, rhs)
+        when '!'
+          lhs.send(op)
+        else
+          OPERATORS[op].call(lhs, rhs)
+        end
+      end
+
+      # allows you to add a new operator, a bit tricky!!!
+      def operator(o)
+        OPERATORS.merge!(o => Proc.new{|lhs, rhs| yield(lhs, rhs)})
+      end
+
+    end
+    
+  end
+
   # encapsulates a single rule
   class BusinessRule
     attr_accessor :priority, :prefix
@@ -77,18 +106,9 @@ module Bredis
       else
         rhs = exp['rhs']
       end
-      operate(op, lhs, rhs)
+      Operation.operate(op, lhs, rhs)
     end
 
-    def self.operate(op, lhs, rhs)
-      puts "\t#{lhs} #{op} #{rhs}"
-      case op 
-      when '='
-        {lhs => rhs}
-      else
-        lhs.send(op, rhs)
-      end
-    end
     
     def delete
       hashish_list(:filters => {'rule_id' => @id}).each do |h|
@@ -203,4 +223,18 @@ end
 
 def next_seq
   Hashish.redis_connection.incr('SEQ').to_i
+end
+
+
+
+Bredis::Operation.operator('IN') do |lhs, rhs|
+  rhs.member?(lhs)
+end
+
+Bredis::Operation.operator('NOT IN') do |lhs, rhs|
+  !rhs.member?(lhs)
+end
+
+Bredis::Operation.operator('=~') do |lhs, rhs|
+  lhs =~ /#{rhs}/
 end
