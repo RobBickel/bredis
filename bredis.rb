@@ -20,7 +20,7 @@ module Bredis
 
   # search '$product' => 'shoes', '$price' => (0..500).to_a
   def self.search(query_hash, options = {})
-    filters => {}
+    filters = {}
     query_hash.each do |key, value|
       filters.merge!('l' => key, 'r' => value)
     end
