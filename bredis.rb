@@ -33,16 +33,15 @@ module Bredis
     
   end
   
-  def self.evaluate(params = {}, options = {})
-    options[:match] ||= 1
+  def self.evaluate(params = {}, max_match = 1)
     result = []
     matches = 0
     BusinessRule.hashish_list(:filters => {'o' => '?'}).each do |rule|
-      break if matches >= options[:match]
+      break if matches >= max_match
       # trickly because of logical operators in the rule
       if (rule['lhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['lhs_id']), params)) or rule['lhs']
         matches += 1
-        result << (rule['rhs'] or BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) # if rule['rule_type'] == :inferred
+        result << (rule['rhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) or rule['rhs'] # (rule['rhs'] or BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) # if rule['rule_type'] == :inferred
       end
     end
     return result
@@ -178,7 +177,7 @@ def benchmark(n)
   end
   result = nil
   t = Benchmark.realtime do
-    result = Bredis.evaluate({}, :match => n)
+    result = Bredis.evaluate({}, n)
   end
   rules = Bredis::BusinessRule.hashish_list(:filters => {'o' => '?'}, :page_size => 0)
   mb2 = Hashish.redis_connection.info['used_memory_human']
