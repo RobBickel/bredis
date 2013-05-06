@@ -39,9 +39,9 @@ module Bredis
     BusinessRule.hashish_list(:filters => {'o' => '?'}).each do |rule|
       break if matches >= max_match
       # trickly because of logical operators in the rule
-      if (rule['lhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['lhs_id']), params)) or rule['lhs']
+      if ((rule['lhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['lhs_id']), params)) or rule['lhs'])
         matches += 1
-        result << (rule['rhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) or rule['rhs'] # (rule['rhs'] or BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) # if rule['rule_type'] == :inferred
+        result << ((rule['rhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) or rule['rhs'])
       end
     end
     return result
