@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 describe Bredis::BusinessRule do
   describe "#initialize" do
     it "should initialize create rule in redis based on the rule hash"

@@ -1,6 +1,7 @@
 module Bredis
   class Operation
     OPERATORS = {
+      # nothing by default
     }
     
     class << self

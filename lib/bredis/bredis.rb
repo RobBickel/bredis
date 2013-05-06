@@ -7,7 +7,7 @@ module Bredis
       filters.merge!('l' => key, 'r' => value)
     end
     options.merge(:filters => filters)
-    Bredis::BusinessRule.hashish_list(options)
+    BusinessRule.hashish_list(options)
   end
 
   # imports many rules into the engine from a one or many JSON rules or JSON file
