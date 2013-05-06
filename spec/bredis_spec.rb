@@ -1,4 +1,4 @@
-describe  BusinessRule do
+describe Bredis::BusinessRule do
   describe "#initialize" do
     it "should initialize create rule in redis based on the rule hash"
   end
