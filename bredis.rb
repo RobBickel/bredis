@@ -1,29 +1,46 @@
+# WHATS THIS
+
+# a business rule engine that sits inside redis
+# uses a pure JSON DSL 
+# is pretty damn fast (4000 conditions are evaluated in 0.8 msec and takes only approx 2.5 MB of RAM)
+# allows you to search the rules
+# can import/export to pure json (file I/O)
+# can specify priorities for rules and evaluate the first N matching based on priority
+# has a nice UI (not this version)
+
 require 'acts_as_hashish'
 require 'json'
+require 'benchmark'
 
 Hashish.configure {|c| c.redis_connection = Redis.new(:db => 3)}
 
-# TODO
-
-# redis representation of rules
-# ruby client that can create rules and evaluate rules (pure JSON input, output)
-# java client that can create rules and evaluate rules (pure JSON input, output)
 
 # the engine
 module Bredis
+
+  # search '$product' => 'shoes', '$price' => (0..500).to_a
+  def self.search(query_hash, options = {})
+    filters => {}
+    query_hash.each do |key, value|
+      filters.merge!('l' => key, 'r' => value)
+    end
+    options.merge(:filters => filters)
+    Bredis::BusinessRule.hashish_list(options)
+  end
 
   # imports many rules into the engine from a one or many JSON rules or JSON file
   def self.import(json)
     
   end
   
-  def self.evaluate(params, options = {})
+  def self.evaluate(params = {}, options = {})
     options[:match] ||= 1
     result = []
     matches = 0
     BusinessRule.hashish_list(:filters => {'o' => '?'}).each do |rule|
       break if matches >= options[:match]
-      if rule['lhs'] or BusinessRule.evaluate(BusinessRule.hashish_find(rule['lhs_id']), params)
+      # trickly because of logical operators in the rule
+      if (rule['lhs_id'] and BusinessRule.evaluate(BusinessRule.hashish_find(rule['lhs_id']), params)) or rule['lhs']
         matches += 1
         result << (rule['rhs'] or BusinessRule.evaluate(BusinessRule.hashish_find(rule['rhs_id']), params)) # if rule['rule_type'] == :inferred
       end
@@ -45,8 +62,8 @@ module Bredis
     
     # evaluate single rule
     def self.evaluate(exp, params)
-      puts "evaluating #{exp.inspect}"
-      if exp['lhs_id']
+      puts "EVAL : #{exp.inspect}"
+      if !exp['lhs_id'].nil?
         lhs = evaluate(BusinessRule.hashish_find(exp['lhs_id']), params)
       elsif params[exp['lhs']]
         lhs = params[exp['lhs']]
@@ -54,7 +71,7 @@ module Bredis
         lhs = exp['lhs']
       end
       op = exp['op']
-      if exp['rhs_id']
+      if !exp['rhs_id'].nil?
         rhs = evaluate(BusinessRule.hashish_find(exp['rhs_id']), params)
       elsif params[exp['rhs']]
         rhs = params[exp['rhs']]
@@ -149,5 +166,42 @@ b = Bredis::BusinessRule.new({
                                }}.to_json)
 
 
-RESULT = Bredis.evaluate({'$product' => 'shoes', '$fare' => 500})
+# RESULT = Bredis.evaluate({'$product' => 'shoes', '$fare' => 500})
 
+
+def benchmark(n)
+  Hashish.redis_connection.flushdb
+  mb1 = Hashish.redis_connection.info['used_memory_human']
+  # create N rules
+  n.times do 
+    Bredis::BusinessRule.new({'id' => next_seq, 'op' => '?', 'lhs' => random_expression, 'rhs' => {'id' => next_seq, 'lhs' => '$result', 'rhs' => random_expression, 'op' => '='}}.to_json)
+  end
+  result = nil
+  t = Benchmark.realtime do
+    result = Bredis.evaluate({}, :match => n)
+  end
+  rules = Bredis::BusinessRule.hashish_list(:filters => {'o' => '?'}, :page_size => 0)
+  mb2 = Hashish.redis_connection.info['used_memory_human']
+  puts "Evaluated #{Bredis::BusinessRule.hashish_length} expressions among #{rules.length} rules in #{t} seconds"
+  puts "RES = #{result.inspect}"
+  puts "MB = #{mb2.to_f - mb1.to_f}"
+end
+
+def random_expression
+  case rand(3) 
+  when 0
+    true
+  when 1
+    false
+  when 2
+    lhs = random_expression
+    rhs = random_expression
+    op = (rand(2) == 1 ? '|' : '&')
+    x = next_seq
+    return {'lhs' => lhs, 'rhs' => rhs, 'op' => op, 'id' => x}
+  end
+end
+
+def next_seq
+  Hashish.redis_connection.incr('SEQ').to_i
+end
