@@ -28,7 +28,7 @@ product_discount_rules = Bredis::RuleSet.new('product_discount_rules', $redis)
 product_discount_rules << {
   'priority' => nil,
   'id' => 1,
-  'op			 ' => '?',
+  'op' => '?',
   'lhs' => {
     'id' => 2,
     'lhs' => '$product', 
@@ -65,7 +65,7 @@ product_discount_rules << {
   }
 }
 
-product_discount_rules.evalutate({'$product' => 'shoes'})
+product_discount_rules.evaluate({'$product' => 'shoes'})
 
 ```
 
