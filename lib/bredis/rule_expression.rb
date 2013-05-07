@@ -1,12 +1,10 @@
 module Bredis
   class RuleExpression
-    attr_accessor :priority, :prefix
 
-    def initialize(json)
-      rule = JSON.parse(json)
-      @priority = rule['priority']
-      @id = rule['id']
-      push(rule)
+    def initialize(exp)
+      @id = exp['id']
+      puts exp.inspect if exp['category'] == 'test'
+      push(exp)
     end
     
     # evaluate single rule
@@ -53,7 +51,9 @@ module Bredis
       else
         rhs = exp['rhs']
       end
-      RuleSet.hashish_insert({'id' => id, 'lhs' => lhs, 'op' => op, 'rhs' => rhs, 'lhs_id' => lhs_id, 'rhs_id' => rhs_id, 'rule_id' => @id})
+      hash = {'id' => id, 'lhs' => lhs, 'op' => op, 'rhs' => rhs, 'lhs_id' => lhs_id, 'rhs_id' => rhs_id, 'rule_id' => @id}
+      hash.merge!('category' => exp['category']) unless exp['category'].nil?
+      RuleSet.hashish_insert(hash)
     end
     
   end
