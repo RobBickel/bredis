@@ -4,6 +4,69 @@
 
 A Business Rule Engine that sits inside redis
 
+## How do I install it?
+
+`gem install bredis`
+
+or in your `Gemfile`
+
+```ruby
+gem 'bredis'
+```
+
+Make sure your redis server is running! Redis configuration is outside the scope of this README, but
+check out the [Redis documentation](http://redis.io/documentation).
+
+## Usage
+
+```ruby
+require 'bredis'
+
+$redis = Redis.new(:db => 3)
+product_discount_rules = Bredis::RuleSet.new('product_discount_rules', $redis)
+
+product_discount_rules << {
+  'priority' => nil,
+  'id' => 1,
+  'op			 ' => '?',
+  'lhs' => {
+    'id' => 2,
+    'lhs' => '$product', 
+    'op' => '==', 
+    'rhs' => 'shoes'
+  }, 
+  'rhs' => {
+    'id' => 3,
+    'lhs' => '$discount', 
+    'op' => '=',
+    'rhs' => {
+      'id' => 7,
+      'lhs' =>'$fare',
+      'op' => '/',
+      'rhs' => 2}
+  }
+}
+
+product_discount_rules << {
+  'priority' => nil,
+  'id' => 4,
+  'op' => '?',
+  'lhs' => {
+    'id' => 5,
+    'lhs' => '$product', 
+    'op' => '==', 
+    'rhs' => 'clothes'
+  }, 
+  'rhs' => {
+    'id' => 6,
+    'lhs' => '$discount', 
+    'op' => '=',
+    'rhs' => 200
+  }
+}
+
+```
+
 ## Goals
 
 * uses a pure JSON DSL 
