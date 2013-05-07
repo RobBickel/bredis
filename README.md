@@ -65,7 +65,7 @@ product_discount_rules << {
   }
 }
 
-product_discount_rules.evaluate({'$product' => 'shoes'})
+product_discount_rules.evaluate({'$product' => 'shoes', '$fare' => 1279.52})
 
 ```
 
