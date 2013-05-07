@@ -1,15 +1,16 @@
 module Bredis
   class RuleSet
 
-    def initialize(category, redis)
+    def initialize(redis, category = nil)
       @category = category
       @redis_connection = redis
       Hashish.configure {|c| c.redis_connection = redis}
-      RuleSet.acts_as_hashish(:key => 'id', :indexes => {'l'=> 'lhs', 'r' => 'rhs', 'o' => 'op', 'c' => 'category'})
+      RuleSet.acts_as_hashish(:key => 'id', :indexes => {'l'=> 'lhs', 'r' => 'rhs', 'o' => 'op', 'c' => 'category'}, :sorters => {'p' => 'priority'})
     end
     
-    def <<(rule)
-      rule.merge!('category' => @category)
+    def <<(rule, priority = nil)
+      rule.merge!('category' => @category) if @category
+      rule.merge!('priority' => priority) if priority
       RuleExpression.new(rule)
     end
 
@@ -39,7 +40,7 @@ module Bredis
     def evaluate(params = {}, max_match = 1)
       result = []
       matches = 0
-      RuleSet.hashish_list(:filters => {'c' => @category, 'o' => '?'}, :page_size => 0).each do |rule|
+      RuleSet.hashish_list(:filters => {'c' => @category, 'o' => '?'}, :page_size => 0, :sort_by => 'p', :sort_order => 'DESC').each do |rule|
         break if matches >= max_match
         # trickly because of logical operators in the rule
         if ((rule['lhs_id'] and RuleExpression.evaluate(RuleSet.hashish_find(rule['lhs_id']), params)) or rule['lhs'])
