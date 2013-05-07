@@ -1,7 +1,7 @@
 require 'benchmark'
 def benchmark(n)
   # create some rules
-  test_rules = Bredis::RuleSet.new('test', Redis.new(:db => 3))
+  test_rules = Bredis::RuleSet.new(Redis.new(:db => 3), 'test')
   $redis_connection = test_rules.instance_variable_get(:@redis_connection)
   $redis_connection.flushdb
   mb1 = $redis_connection.info['used_memory_human']
