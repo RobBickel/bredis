@@ -23,10 +23,9 @@ check out the [Redis documentation](http://redis.io/documentation).
 require 'bredis'
 
 $redis = Redis.new(:db => 3)
-product_discount_rules = Bredis::RuleSet.new('product_discount_rules', $redis)
-
+product_discount_rules = Bredis::RuleSet.new($redis, 'product_discount_rules')
 product_discount_rules << {
-  'priority' => nil,
+  'priority' => 1,
   'id' => 1,
   'op' => '?',
   'lhs' => {
@@ -48,14 +47,14 @@ product_discount_rules << {
 }
 
 product_discount_rules << {
-  'priority' => nil,
+  'priority' => 2,
   'id' => 4,
   'op' => '?',
   'lhs' => {
     'id' => 5,
     'lhs' => '$product', 
     'op' => '==', 
-    'rhs' => 'clothes'
+    'rhs' => 'shoes'
   }, 
   'rhs' => {
     'id' => 6,
@@ -66,7 +65,6 @@ product_discount_rules << {
 }
 
 product_discount_rules.evaluate({'$product' => 'shoes', '$fare' => 1279.52})
-
 ```
 
 ## Goals
