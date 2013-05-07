@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Bredis::BusinessRule do
+describe Bredis::RuleExpression do
   describe "#initialize" do
     it "should initialize create rule in redis based on the rule hash"
   end
@@ -11,7 +11,7 @@ describe Bredis::BusinessRule do
   
 end
 
-describe Bredis do
+describe Bredis::RuleSet do
   describe ".import" do
     it "should create rule(s) in redis from the JSON file"
   end
