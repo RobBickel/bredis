@@ -1,17 +1,19 @@
+require 'benchmark'
 def benchmark(n)
-  Hashish.redis_connection.flushdb
-  mb1 = Hashish.redis_connection.info['used_memory_human']
-  # create N rules
+  # create some rules
+  test_rules = Bredis::RuleSet.new('test', Redis.new(:db => 3))
+  $redis_connection = test_rules.instance_variable_get(:@redis_connection)
+  $redis_connection.flushdb
+  mb1 = $redis_connection.info['used_memory_human']
   n.times do 
-    Bredis::BusinessRule.new({'id' => next_seq, 'op' => '?', 'lhs' => random_expression, 'rhs' => {'id' => next_seq, 'lhs' => '$result', 'rhs' => random_expression, 'op' => '='}}.to_json)
+    test_rules << {'id' => next_seq, 'op' => '?', 'lhs' => random_expression, 'rhs' => {'id' => next_seq, 'lhs' => '$result', 'rhs' => random_expression, 'op' => '='}}
   end
   result = nil
   t = Benchmark.realtime do
-    result = Bredis.evaluate({}, n)
+    result = test_rules.evaluate({}, n)
   end
-  rules = Bredis::BusinessRule.hashish_list(:filters => {'o' => '?'}, :page_size => 0)
-  mb2 = Hashish.redis_connection.info['used_memory_human']
-  puts "Evaluated #{Bredis::BusinessRule.hashish_length} expressions among #{rules.length} rules in #{t} seconds"
+  mb2 = $redis_connection.info['used_memory_human']
+  puts "Evaluated #{test_rules.length} expressions among #{test_rules.length} rules in #{t} seconds"
   puts "RES = #{result.inspect}"
   puts "MB = #{mb2.to_f - mb1.to_f}"
 end
@@ -32,7 +34,7 @@ def random_expression
 end
 
 def next_seq
-  Hashish.redis_connection.incr('SEQ').to_i
+  $redis_connection.incr('SEQ').to_i
 end
 
 # some operators
