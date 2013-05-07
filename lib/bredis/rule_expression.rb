@@ -3,7 +3,6 @@ module Bredis
 
     def initialize(exp)
       @id = exp['id']
-      puts exp.inspect if exp['category'] == 'test'
       push(exp)
     end
     
@@ -53,6 +52,7 @@ module Bredis
       end
       hash = {'id' => id, 'lhs' => lhs, 'op' => op, 'rhs' => rhs, 'lhs_id' => lhs_id, 'rhs_id' => rhs_id, 'rule_id' => @id}
       hash.merge!('category' => exp['category']) unless exp['category'].nil?
+      hash.merge!('priority' => exp['priority']) unless exp['priority'].nil?
       RuleSet.hashish_insert(hash)
     end
     
