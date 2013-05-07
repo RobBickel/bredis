@@ -65,6 +65,8 @@ product_discount_rules << {
   }
 }
 
+product_discount_rules.evalutate({'$product' => 'shoes'})
+
 ```
 
 ## Goals
