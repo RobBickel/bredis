@@ -1,7 +1,6 @@
 module Bredis
-  class BusinessRule
+  class RuleExpression
     attr_accessor :priority, :prefix
-    acts_as_hashish(:key => 'id', :indexes => {'l'=> 'lhs', 'r' => 'rhs', 'o' => 'op'})
 
     def initialize(json)
       rule = JSON.parse(json)
@@ -14,7 +13,7 @@ module Bredis
     def self.evaluate(exp, params)
       puts "EVAL : #{exp.inspect}"
       if !exp['lhs_id'].nil?
-        lhs = evaluate(BusinessRule.hashish_find(exp['lhs_id']), params)
+        lhs = evaluate(RuleSet.hashish_find(exp['lhs_id']), params)
       elsif params[exp['lhs']]
         lhs = params[exp['lhs']]
       else
@@ -22,7 +21,7 @@ module Bredis
       end
       op = exp['op']
       if !exp['rhs_id'].nil?
-        rhs = evaluate(BusinessRule.hashish_find(exp['rhs_id']), params)
+        rhs = evaluate(RuleSet.hashish_find(exp['rhs_id']), params)
       elsif params[exp['rhs']]
         rhs = params[exp['rhs']]
       else
@@ -54,7 +53,7 @@ module Bredis
       else
         rhs = exp['rhs']
       end
-      BusinessRule.hashish_insert({'id' => id, 'lhs' => lhs, 'op' => op, 'rhs' => rhs, 'lhs_id' => lhs_id, 'rhs_id' => rhs_id, 'rule_id' => @id})
+      RuleSet.hashish_insert({'id' => id, 'lhs' => lhs, 'op' => op, 'rhs' => rhs, 'lhs_id' => lhs_id, 'rhs_id' => rhs_id, 'rule_id' => @id})
     end
     
   end
